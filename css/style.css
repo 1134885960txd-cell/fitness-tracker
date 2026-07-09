@@ -1,0 +1,93 @@
+:root {
+  --brand: #10b981;
+  --brand-light: #d1fae5;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* 页面切换淡入 */
+.view {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 底部导航安全区 */
+nav {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* 日历格子 */
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.calendar-day:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.calendar-day.other-month {
+  color: #cbd5e1;
+}
+
+.calendar-day.today-ring {
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+
+/* 复选框卡片 */
+.check-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.check-card:has(input:checked) {
+  background: var(--brand-light);
+  border-color: var(--brand);
+}
+
+.check-card input {
+  accent-color: var(--brand);
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 数字输入框去掉上下箭头 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* 提示条 */
+#toast.show {
+  opacity: 1;
+}
