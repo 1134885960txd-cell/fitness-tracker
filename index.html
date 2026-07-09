@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>健身增肌减脂打卡</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-3xl mx-auto min-h-screen pb-24">
+    <!-- 趋势首页 -->
+    <section id="view-dashboard" class="view px-4 pt-6">
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">健身打卡</h1>
+          <p class="text-sm text-slate-500">坚持记录，看见变化</p>
+        </div>
+        <div class="p-2 bg-emerald-100 rounded-full text-emerald-600">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+      </header>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold text-slate-900">体重 & 体脂趋势</h2>
+          <div class="flex bg-slate-100 rounded-lg p-1 gap-1">
+            <button data-range="7" class="range-btn px-3 py-1 text-xs font-medium rounded-md bg-white text-slate-900 shadow-sm">7天</button>
+            <button data-range="30" class="range-btn px-3 py-1 text-xs font-medium rounded-md text-slate-500 hover:text-slate-900">30天</button>
+            <button data-range="all" class="range-btn px-3 py-1 text-xs font-medium rounded-md text-slate-500 hover:text-slate-900">全部</button>
+          </div>
+        </div>
+        <div class="relative h-64">
+          <canvas id="trendChart"></canvas>
+          <div id="chartEmpty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+            <i data-lucide="line-chart" class="w-10 h-10 mb-2 opacity-50"></i>
+            <p class="text-sm">记录体重体脂后即可看到趋势图</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold text-slate-900">今日速览</h2>
+          <span id="todayDate" class="text-xs text-slate-500"></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 bg-emerald-50 rounded-xl">
+            <div class="flex items-center gap-1 text-emerald-600 mb-1">
+              <i data-lucide="weight" class="w-4 h-4"></i>
+              <span class="text-xs">体重</span>
+            </div>
+            <p id="dashWeight" class="text-lg font-bold text-slate-900">--</p>
+          </div>
+          <div class="p-3 bg-sky-50 rounded-xl">
+            <div class="flex items-center gap-1 text-sky-600 mb-1">
+              <i data-lucide="percent" class="w-4 h-4"></i>
+              <span class="text-xs">体脂</span>
+            </div>
+            <p id="dashBodyFat" class="text-lg font-bold text-slate-900">--</p>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-xl">
+            <div class="flex items-center gap-1 text-blue-600 mb-1">
+              <i data-lucide="droplets" class="w-4 h-4"></i>
+              <span class="text-xs">喝水</span>
+            </div>
+            <p id="dashWater" class="text-lg font-bold text-slate-900">--</p>
+          </div>
+          <div class="p-3 bg-rose-50 rounded-xl">
+            <div class="flex items-center gap-1 text-rose-600 mb-1">
+              <i data-lucide="flame" class="w-4 h-4"></i>
+              <span class="text-xs">运动</span>
+            </div>
+            <p id="dashExercise" class="text-lg font-bold text-slate-900">--</p>
+          </div>
+        </div>
+        <div id="dietSummary" class="mt-3 text-sm text-slate-600 leading-relaxed"></div>
+      </div>
+
+      <button id="goTodayBtn" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        去打卡
+      </button>
+    </section>
+
+    <!-- 今日打卡 -->
+    <section id="view-today" class="view hidden px-4 pt-6">
+      <header class="flex items-center gap-3 mb-6">
+        <button id="backFromToday" class="p-2 -ml-2 hover:bg-slate-100 rounded-full text-slate-500">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">每日打卡</h1>
+          <input type="date" id="recordDate" class="text-sm text-slate-500 bg-transparent border-b border-slate-200 focus:border-emerald-500 outline-none" />
+        </div>
+      </header>
+
+      <div class="space-y-5">
+        <!-- 身体数据 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="ruler" class="w-4 h-4 text-emerald-600"></i> 身体数据
+          </h2>
+          <div class="grid grid-cols-2 gap-4 mb-3">
+            <label class="block">
+              <span class="text-xs text-slate-500">体重 (kg)</span>
+              <input type="number" step="0.1" id="inputWeight" class="mt-1 w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none" placeholder="0.0" />
+            </label>
+            <label class="block">
+              <span class="text-xs text-slate-500">体脂率 (%)</span>
+              <input type="number" step="0.1" id="inputBodyFat" class="mt-1 w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none" placeholder="0.0" />
+            </label>
+          </div>
+          <button id="toggleDetailsBtn" type="button" class="w-full py-2 text-sm text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg flex items-center justify-center gap-1 transition-colors">
+            <span>展开详细身体数据</span>
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <div id="bodyDetails" class="hidden mt-3 grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- 喝水 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="cup-soda" class="w-4 h-4 text-blue-600"></i> 喝水记录
+          </h2>
+          <div class="flex items-center gap-3 mb-3">
+            <input type="number" id="inputWater" class="flex-1 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none" placeholder="毫升" />
+            <span class="text-sm text-slate-500">ml</span>
+          </div>
+          <div class="flex gap-2">
+            <button data-add="250" class="water-quick px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">+250ml</button>
+            <button data-add="500" class="water-quick px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">+500ml</button>
+          </div>
+        </div>
+
+        <!-- 运动 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="dumbbell" class="w-4 h-4 text-rose-600"></i> 运动打卡
+          </h2>
+          <div id="exerciseOptions" class="grid grid-cols-2 gap-2 mb-3"></div>
+          <label class="block">
+            <span class="text-xs text-slate-500">运动备注</span>
+            <input type="text" id="inputExerciseNote" class="mt-1 w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none" placeholder="例如：练胸 45 分钟" />
+          </label>
+        </div>
+
+        <!-- 饮食 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="utensils" class="w-4 h-4 text-amber-600"></i> 饮食记录
+          </h2>
+          <div id="dietInputs" class="space-y-3"></div>
+        </div>
+
+        <button id="saveBtn" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="save" class="w-5 h-5"></i>
+          保存记录
+        </button>
+      </div>
+    </section>
+
+    <!-- 日历历史 -->
+    <section id="view-calendar" class="view hidden px-4 pt-6">
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">打卡日历</h1>
+          <p class="text-sm text-slate-500">点击日期查看或补填记录</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prevMonth" class="p-2 hover:bg-slate-100 rounded-full text-slate-600">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <span id="calendarMonth" class="text-sm font-semibold w-20 text-center"></span>
+          <button id="nextMonth" class="p-2 hover:bg-slate-100 rounded-full text-slate-600">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+        <div class="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-2">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+          <span>颜色越深表示当天完成度越高</span>
+          <button id="backFromCalendar" class="text-emerald-600 font-medium hover:underline">返回今日</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-2 z-50">
+    <div class="max-w-3xl mx-auto flex justify-around">
+      <button data-view="dashboard" class="nav-btn flex flex-col items-center gap-1 p-2 text-emerald-600">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-xs">趋势</span>
+      </button>
+      <button data-view="today" class="nav-btn flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-slate-600">
+        <i data-lucide="check-square" class="w-5 h-5"></i>
+        <span class="text-xs">今日</span>
+      </button>
+      <button data-view="calendar" class="nav-btn flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-slate-600">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-xs">日历</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 提示条 -->
+  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity z-50">
+    已保存
+  </div>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
